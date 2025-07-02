@@ -12,7 +12,11 @@ import { VendorManagement } from "@/components/VendorManagement";
 import { CalendarIntegration } from "@/components/CalendarIntegration";
 import { WalkInCapture } from "@/components/WalkInCapture";
 
-const Index = () => {
+interface IndexProps {
+  onBackToEmployeePortal?: () => void;
+}
+
+const Index = ({ onBackToEmployeePortal }: IndexProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   // Mock stats for dashboard
@@ -37,7 +41,14 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">Banquet Hall Management System</p>
               </div>
             </div>
-            <Badge variant="outline" className="text-xs">Manager Portal</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">Manager Portal</Badge>
+              {onBackToEmployeePortal && (
+                <Button variant="outline" size="sm" onClick={onBackToEmployeePortal}>
+                  Back to Employee Portal
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>

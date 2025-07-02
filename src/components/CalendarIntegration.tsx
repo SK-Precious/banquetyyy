@@ -20,7 +20,11 @@ interface CalendarEvent {
   clientName: string;
 }
 
-export function CalendarIntegration() {
+interface CalendarIntegrationProps {
+  isRestrictedView?: boolean;
+}
+
+export function CalendarIntegration({ isRestrictedView = false }: CalendarIntegrationProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: "1",

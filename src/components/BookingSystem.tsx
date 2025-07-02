@@ -15,6 +15,7 @@ import { Plus, Eye, Download, Calendar, Users, DollarSign, CreditCard } from "lu
 
 interface Booking {
   id: string;
+  serialNumber: string;
   clientName: string;
   address: string;
   contactDetails: string;
@@ -44,11 +45,16 @@ interface PartPayment {
   description: string;
 }
 
-export function BookingSystem() {
+interface BookingSystemProps {
+  employeeCode?: string;
+}
+
+export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
   const [activeTab, setActiveTab] = useState("bookings");
   const [bookings, setBookings] = useState<Booking[]>([
     {
       id: "1",
+      serialNumber: "BQ2024001",
       clientName: "Sarah & John Wedding",
       address: "123 Wedding Street, Mumbai",
       contactDetails: "+91 9876543210",
@@ -159,8 +165,13 @@ export function BookingSystem() {
       return;
     }
 
+    // Generate serial number
+    const currentYear = new Date().getFullYear();
+    const serialNumber = `BQ${currentYear}${(bookings.length + 1).toString().padStart(3, '0')}`;
+
     const booking: Booking = {
       id: Date.now().toString(),
+      serialNumber,
       clientName: newBooking.clientName,
       address: newBooking.address,
       contactDetails: newBooking.contactDetails,
@@ -344,6 +355,7 @@ export function BookingSystem() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Serial No.</TableHead>
                     <TableHead>Client Name</TableHead>
                     <TableHead>Event Date</TableHead>
                     <TableHead>Slot</TableHead>
@@ -358,7 +370,8 @@ export function BookingSystem() {
                 <TableBody>
                   {bookings.map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-medium">{booking.clientName}</TableCell>
+                      <TableCell className="font-medium">{booking.serialNumber}</TableCell>
+                      <TableCell>{booking.clientName}</TableCell>
                       <TableCell>{new Date(booking.eventDate).toLocaleDateString()}</TableCell>
                       <TableCell className="capitalize">{booking.slot}</TableCell>
                       <TableCell>{booking.menuPreference}</TableCell>
