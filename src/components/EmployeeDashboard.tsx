@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Building, LogOut, Users, Calendar, Package, Receipt } from "lucide-react";
+import { Building, LogOut, Users, Calendar, Package, Receipt, Settings } from "lucide-react";
 import { LeadManagement } from "@/components/LeadManagement";
 import { BookingSystem } from "@/components/BookingSystem";
 import { PaymentTracking } from "@/components/PaymentTracking";
 import { InventoryManagement } from "@/components/InventoryManagement";
 import { CalendarIntegration } from "@/components/CalendarIntegration";
 import { InventoryReceipts } from "@/components/InventoryReceipts";
+import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
 
 interface EmployeeDashboardProps {
   employeeCode: string;
@@ -18,6 +19,7 @@ interface EmployeeDashboardProps {
 
 export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardProps) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const getEmployeeType = (code: string) => {
     const codeNum = parseInt(code);
@@ -32,7 +34,7 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
       return {
         canAccessBookings: true,
         canAccessLeads: true,
-        canAccessPayments: true,
+        canAccessPayments: false, // Removed for employees
         canAccessInventory: false,
         canAccessReceipts: false,
         canAccessFinancials: false
@@ -91,36 +93,49 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 lg:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Building className="h-8 w-8 text-primary" />
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <Building className="h-6 w-6 lg:h-8 lg:w-8 text-primary" />
               <div>
-                <h1 className="text-2xl font-bold text-foreground">BANQUETY</h1>
-                <p className="text-sm text-muted-foreground">Employee Portal</p>
+                <h1 className="text-lg lg:text-2xl font-bold text-foreground">BANQUETY</h1>
+                <p className="text-xs lg:text-sm text-muted-foreground hidden sm:block">Employee Portal</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              <div className="text-right hidden sm:block">
                 <Badge variant="outline" className="text-xs">
                   Employee {employeeCode}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-1">{employeeType}</p>
               </div>
+              <div className="sm:hidden">
+                <Badge variant="outline" className="text-xs">
+                  {employeeCode}
+                </Badge>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowPasswordDialog(true)}
+                className="mr-2"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
               <Button variant="outline" size="sm" onClick={onLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <LogOut className="w-4 h-4 mr-0 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 lg:py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full grid-cols-${availableTabs.length} mb-6`}>
+          <TabsList className={`grid w-full mb-4 lg:mb-6 overflow-x-auto`} style={{gridTemplateColumns: `repeat(${availableTabs.length}, minmax(0, 1fr))`}}>
             {availableTabs.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value}>
+              <TabsTrigger key={tab.value} value={tab.value} className="text-xs lg:text-sm whitespace-nowrap">
                 {tab.label}
               </TabsTrigger>
             ))}
@@ -265,6 +280,12 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
           </TabsContent>
         </Tabs>
       </div>
+
+      <PasswordChangeDialog
+        open={showPasswordDialog}
+        onOpenChange={setShowPasswordDialog}
+        employeeCode={employeeCode}
+      />
     </div>
   );
 }

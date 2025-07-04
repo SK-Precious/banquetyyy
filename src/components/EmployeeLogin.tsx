@@ -12,15 +12,16 @@ interface EmployeeLoginProps {
 
 export function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
   const [employeeCode, setEmployeeCode] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!employeeCode) {
+    if (!employeeCode || !password) {
       toast({
         title: "Error",
-        description: "Please enter your employee code",
+        description: "Please enter both employee code and password",
         variant: "destructive",
       });
       return;
@@ -32,6 +33,16 @@ export function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
       toast({
         title: "Error",
         description: "Invalid employee code. Please enter a code between 001-010",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password (default: "admin")
+    if (password !== "admin") {
+      toast({
+        title: "Error",
+        description: "Incorrect password",
         variant: "destructive",
       });
       return;
@@ -54,7 +65,7 @@ export function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Building className="h-12 w-12 text-primary" />
@@ -75,9 +86,24 @@ export function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
                 value={employeeCode}
                 onChange={(e) => setEmployeeCode(e.target.value)}
                 maxLength={3}
+                className="text-base" // Better for mobile
               />
               <p className="text-xs text-muted-foreground">
                 Enter your 3-digit employee code (001-010)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-base" // Better for mobile
+              />
+              <p className="text-xs text-muted-foreground">
+                Default password: admin
               </p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>

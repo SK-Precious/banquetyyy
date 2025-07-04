@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Eye, Download, Calendar, Users, DollarSign, CreditCard } from "lucide-react";
+import { Plus, Eye, Download, Calendar, Users, DollarSign, CreditCard, Printer, Edit, Trash2 } from "lucide-react";
+import { BookingReceiptPrint } from "@/components/BookingReceiptPrint";
 
 interface Booking {
   id: string;
@@ -97,6 +98,8 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [showNewPartPayment, setShowNewPartPayment] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [printBooking, setPrintBooking] = useState<any>(null);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
   
   const [newBooking, setNewBooking] = useState({
     clientName: "",
@@ -268,10 +271,17 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
   };
 
   const generateBookingForm = (booking: Booking) => {
-    toast({
-      title: "Booking Form Generated",
-      description: "Printable booking form is ready for download",
-    });
+    // Convert booking to match receipt interface
+    const receiptBooking = {
+      ...booking,
+      customerName: booking.clientName,
+      phone: booking.contactDetails,
+      email: "N/A", // Add email field to booking interface if needed
+      menuPreference: booking.menuPreference,
+      netAmount: booking.netBooking
+    } as any; // Type assertion to match receipt interface
+    setPrintBooking(receiptBooking);
+    setShowPrintDialog(true);
   };
 
   const calculateTotalPaid = (booking: Booking) => {
@@ -284,30 +294,30 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Booking System</h2>
-          <p className="text-muted-foreground">Manage event bookings and payments</p>
+          <h2 className="text-xl lg:text-2xl font-bold">Booking System</h2>
+          <p className="text-muted-foreground text-sm lg:text-base">Manage event bookings and payments</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
-          <TabsTrigger value="part-payments">Part Payments</TabsTrigger>
+          <TabsTrigger value="bookings" className="text-sm">Bookings</TabsTrigger>
+          <TabsTrigger value="part-payments" className="text-sm">Part Payments</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="bookings" className="space-y-6">
-          <div className="flex justify-between items-center">
+        <TabsContent value="bookings" className="space-y-4 lg:space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 className="text-lg font-semibold">All Bookings</h3>
-            <Button onClick={() => setShowNewBooking(true)}>
+            <Button onClick={() => setShowNewBooking(true)} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               New Booking
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
@@ -384,13 +394,15 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-wrap">
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => generateBookingForm(booking)}
+                            className="flex-1 sm:flex-none"
                           >
-                            <Download className="w-4 h-4" />
+                            <Printer className="w-4 h-4 mr-0 sm:mr-1" />
+                            <span className="hidden sm:inline">Print</span>
                           </Button>
                           <Dialog>
                             <DialogTrigger asChild>
@@ -398,8 +410,10 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setSelectedBooking(booking)}
+                                className="flex-1 sm:flex-none"
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-4 h-4 mr-0 sm:mr-1" />
+                                <span className="hidden sm:inline">View</span>
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-3xl">
@@ -507,10 +521,10 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
           </Card>
         </TabsContent>
 
-        <TabsContent value="part-payments" className="space-y-6">
-          <div className="flex justify-between items-center">
+        <TabsContent value="part-payments" className="space-y-4 lg:space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 className="text-lg font-semibold">Part Payments</h3>
-            <Button onClick={() => setShowNewPartPayment(true)}>
+            <Button onClick={() => setShowNewPartPayment(true)} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Part Payment
             </Button>
@@ -554,9 +568,9 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
 
       {/* New Booking Dialog */}
       <Dialog open={showNewBooking} onOpenChange={setShowNewBooking}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
-            <DialogTitle>Create New Booking</DialogTitle>
+            <DialogTitle className="text-lg lg:text-xl">Create New Booking</DialogTitle>
             <DialogDescription>
               Enter details for a new event booking
             </DialogDescription>
@@ -571,6 +585,7 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
                   value={newBooking.clientName}
                   onChange={(e) => setNewBooking({...newBooking, clientName: e.target.value})}
                   placeholder="Enter client name"
+                  className="text-base" // Better for mobile
                   required
                 />
               </div>
@@ -868,6 +883,12 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BookingReceiptPrint
+        booking={printBooking}
+        open={showPrintDialog}
+        onOpenChange={setShowPrintDialog}
+      />
     </div>
   );
 }

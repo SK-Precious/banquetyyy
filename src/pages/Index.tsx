@@ -32,19 +32,19 @@ const Index = ({ onBackToEmployeePortal }: IndexProps) => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 lg:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Building className="h-8 w-8 text-primary" />
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <Building className="h-6 w-6 lg:h-8 lg:w-8 text-primary" />
               <div>
-                <h1 className="text-2xl font-bold text-foreground">BANQUETY</h1>
-                <p className="text-sm text-muted-foreground">Banquet Hall Management System</p>
+                <h1 className="text-lg lg:text-2xl font-bold text-foreground">BANQUETY</h1>
+                <p className="text-xs lg:text-sm text-muted-foreground hidden sm:block">Banquet Hall Management System</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">Manager Portal</Badge>
+              <Badge variant="outline" className="text-xs">Manager</Badge>
               {onBackToEmployeePortal && (
-                <Button variant="outline" size="sm" onClick={onBackToEmployeePortal}>
+                <Button variant="outline" size="sm" onClick={onBackToEmployeePortal} className="hidden sm:flex">
                   Back to Employee Portal
                 </Button>
               )}
@@ -53,21 +53,21 @@ const Index = ({ onBackToEmployeePortal }: IndexProps) => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 lg:py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="leads">Leads</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="vendors">Vendors</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 mb-4 lg:mb-6 overflow-x-auto">
+            <TabsTrigger value="dashboard" className="text-xs lg:text-sm">Dashboard</TabsTrigger>
+            <TabsTrigger value="leads" className="text-xs lg:text-sm hidden lg:block">Leads</TabsTrigger>
+            <TabsTrigger value="bookings" className="text-xs lg:text-sm">Bookings</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs lg:text-sm">Payments</TabsTrigger>
+            <TabsTrigger value="inventory" className="text-xs lg:text-sm hidden lg:block">Inventory</TabsTrigger>
+            <TabsTrigger value="vendors" className="text-xs lg:text-sm hidden lg:block">Vendors</TabsTrigger>
+            <TabsTrigger value="calendar" className="text-xs lg:text-sm">Calendar</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
             <div className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
