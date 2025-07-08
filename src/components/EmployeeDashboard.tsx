@@ -11,6 +11,9 @@ import { InventoryManagement } from "@/components/InventoryManagement";
 import { CalendarIntegration } from "@/components/CalendarIntegration";
 import { InventoryReceipts } from "@/components/InventoryReceipts";
 import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
+import { AIAgentsManagement } from "@/components/AIAgentsManagement";
+import { DecisionIntelligence } from "@/components/DecisionIntelligence";
+import { WhatsAppCommunication } from "@/components/WhatsAppCommunication";
 
 interface EmployeeDashboardProps {
   employeeCode: string;
@@ -38,7 +41,10 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
         canAccessPayments: true, // Only admin can access payments
         canAccessInventory: true,
         canAccessReceipts: true,
-        canAccessFinancials: true
+        canAccessFinancials: true,
+        canAccessAI: true, // AI features only for admin
+        canAccessWhatsApp: true,
+        canAccessIntelligence: true
       };
     }
     
@@ -50,7 +56,10 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
         canAccessPayments: false, // Removed for employees
         canAccessInventory: false,
         canAccessReceipts: false,
-        canAccessFinancials: false
+        canAccessFinancials: false,
+        canAccessAI: false,
+        canAccessWhatsApp: false,
+        canAccessIntelligence: false
       };
     }
     if (codeNum >= 4 && codeNum <= 5) {
@@ -60,7 +69,10 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
         canAccessPayments: false,
         canAccessInventory: true,
         canAccessReceipts: true,
-        canAccessFinancials: false
+        canAccessFinancials: false,
+        canAccessAI: false,
+        canAccessWhatsApp: false,
+        canAccessIntelligence: false
       };
     }
     return {
@@ -69,7 +81,10 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
       canAccessPayments: false,
       canAccessInventory: false,
       canAccessReceipts: false,
-      canAccessFinancials: false
+      canAccessFinancials: false,
+      canAccessAI: false,
+      canAccessWhatsApp: false,
+      canAccessIntelligence: false
     };
   };
 
@@ -93,6 +108,15 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
     }
     if (permissions.canAccessReceipts) {
       tabs.push({ value: "receipts", label: "Receipts" });
+    }
+    if (permissions.canAccessAI) {
+      tabs.push({ value: "ai-agents", label: "AI Agents" });
+    }
+    if (permissions.canAccessWhatsApp) {
+      tabs.push({ value: "whatsapp", label: "WhatsApp" });
+    }
+    if (permissions.canAccessIntelligence) {
+      tabs.push({ value: "intelligence", label: "Intelligence" });
     }
     
     // Calendar is available to all
@@ -285,6 +309,24 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
           {permissions.canAccessReceipts && (
             <TabsContent value="receipts">
               <InventoryReceipts />
+            </TabsContent>
+          )}
+
+          {permissions.canAccessAI && (
+            <TabsContent value="ai-agents">
+              <AIAgentsManagement />
+            </TabsContent>
+          )}
+
+          {permissions.canAccessWhatsApp && (
+            <TabsContent value="whatsapp">
+              <WhatsAppCommunication />
+            </TabsContent>
+          )}
+
+          {permissions.canAccessIntelligence && (
+            <TabsContent value="intelligence">
+              <DecisionIntelligence />
             </TabsContent>
           )}
 
