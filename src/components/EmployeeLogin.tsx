@@ -27,31 +27,44 @@ export function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
       return;
     }
 
-    // Validate employee code (001-010)
-    const codeNum = parseInt(employeeCode);
-    if (isNaN(codeNum) || codeNum < 1 || codeNum > 10) {
-      toast({
-        title: "Error",
-        description: "Invalid employee code. Please enter a code between 001-010",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate password (default: "admin")
-    if (password !== "admin") {
-      toast({
-        title: "Error",
-        description: "Incorrect password",
-        variant: "destructive",
-      });
-      return;
+    // Validate employee code (000 for admin, 001-010 for employees)
+    if (employeeCode === "000") {
+      // Admin validation
+      if (password !== "Parth007!") {
+        toast({
+          title: "Error",
+          description: "Incorrect admin password",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // Employee validation
+      const codeNum = parseInt(employeeCode);
+      if (isNaN(codeNum) || codeNum < 1 || codeNum > 10) {
+        toast({
+          title: "Error",
+          description: "Invalid employee code. Please enter a code between 001-010, or 000 for admin",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate employee password (default: "admin")
+      if (password !== "admin") {
+        toast({
+          title: "Error",
+          description: "Incorrect password",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsLoading(true);
     
     // Format code to 3 digits
-    const formattedCode = codeNum.toString().padStart(3, '0');
+    const formattedCode = employeeCode === "000" ? "000" : parseInt(employeeCode).toString().padStart(3, '0');
     
     setTimeout(() => {
       onLogin(formattedCode);
@@ -89,7 +102,7 @@ export function EmployeeLogin({ onLogin }: EmployeeLoginProps) {
                 className="text-base" // Better for mobile
               />
               <p className="text-xs text-muted-foreground">
-                Enter your 3-digit employee code (001-010)
+                Enter your employee code (001-010) or 000 for admin
               </p>
             </div>
             <div className="space-y-2">

@@ -29,7 +29,9 @@ export function PasswordChangeDialog({ open, onOpenChange, employeeCode }: Passw
       return;
     }
 
-    if (currentPassword !== "admin") {
+    // Check current password based on employee type
+    const expectedPassword = employeeCode === "000" ? "Parth007!" : "admin";
+    if (currentPassword !== expectedPassword) {
       toast({
         title: "Error",
         description: "Current password is incorrect",

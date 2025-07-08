@@ -22,6 +22,7 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const getEmployeeType = (code: string) => {
+    if (code === "000") return "Administrator";
     const codeNum = parseInt(code);
     if (codeNum >= 1 && codeNum <= 3) return "Booking Office";
     if (codeNum >= 4 && codeNum <= 5) return "Inventory Staff";
@@ -29,6 +30,18 @@ export function EmployeeDashboard({ employeeCode, onLogout }: EmployeeDashboardP
   };
 
   const getEmployeePermissions = (code: string) => {
+    // Admin has full access
+    if (code === "000") {
+      return {
+        canAccessBookings: true,
+        canAccessLeads: true,
+        canAccessPayments: true, // Only admin can access payments
+        canAccessInventory: true,
+        canAccessReceipts: true,
+        canAccessFinancials: true
+      };
+    }
+    
     const codeNum = parseInt(code);
     if (codeNum >= 1 && codeNum <= 3) {
       return {
