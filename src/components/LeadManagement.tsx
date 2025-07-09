@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { Phone, Mail, MessageCircle, Plus, Eye, Calendar } from "lucide-react";
 import { WalkInCapture } from "./WalkInCapture";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Lead {
   id: string;
@@ -70,12 +72,38 @@ export function LeadManagement() {
     }
   };
 
-  const sendWhatsAppMessage = (lead: Lead) => {
-    const message = `Hello ${lead.name.split(' ')[0]}! Thank you for your interest in our banquet hall. We'd love to help make your special day memorable. Here's our venue information and sample menu. Would you like to schedule a food tasting?`;
-    toast({
-      title: "WhatsApp Message Sent",
-      description: `Automated message sent to ${lead.name}`,
-    });
+  const sendWhatsAppMessage = async (lead: Lead, messageType: 'welcome' | 'quote' | 'reminder' = 'welcome') => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
+        body: {
+          name: lead.name,
+          phone: lead.phone,
+          type: messageType,
+          data: {
+            eventDate: lead.eventDate,
+            guestCount: lead.guestCount,
+            budget: lead.budget
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "WhatsApp Message Sent",
+          description: `${messageType} message sent to ${lead.name}`,
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to send message');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to send WhatsApp message: ${error.message}`,
+        variant: "destructive",
+      });
+    }
   };
 
   const scheduleCallback = (lead: Lead) => {
@@ -151,13 +179,24 @@ export function LeadManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => sendWhatsAppMessage(lead)}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => sendWhatsAppMessage(lead, 'welcome')}>
+                            Send Welcome Message
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => sendWhatsAppMessage(lead, 'quote')}>
+                            Send Price Quote
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => sendWhatsAppMessage(lead, 'reminder')}>
+                            Send Reminder
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -215,10 +254,25 @@ export function LeadManagement() {
                                 <p className="text-sm mt-1">{selectedLead.notes}</p>
                               </div>
                               <div className="flex gap-2">
-                                <Button onClick={() => sendWhatsAppMessage(selectedLead)}>
-                                  <MessageCircle className="w-4 h-4 mr-2" />
-                                  Send WhatsApp
-                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button>
+                                      <MessageCircle className="w-4 h-4 mr-2" />
+                                      Send WhatsApp
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => sendWhatsAppMessage(selectedLead, 'welcome')}>
+                                      Welcome Message
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => sendWhatsAppMessage(selectedLead, 'quote')}>
+                                      Price Quote
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => sendWhatsAppMessage(selectedLead, 'reminder')}>
+                                      Send Reminder
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                                 <Button variant="outline">
                                   Convert to Booking
                                 </Button>

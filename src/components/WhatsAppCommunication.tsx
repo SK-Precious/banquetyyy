@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import { MessageCircle, Send, Phone, Clock, FileText, Camera, Bot, Settings, Activity, CheckCircle, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WhatsAppMessage {
   id: string;
@@ -140,7 +141,7 @@ export function WhatsAppCommunication() {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.leadName || !newMessage.phone || !newMessage.message) {
       toast({
         title: "Error",
@@ -150,19 +151,41 @@ export function WhatsAppCommunication() {
       return;
     }
 
-    // Simulate API call
-    toast({
-      title: "Message Sent",
-      description: `WhatsApp message sent to ${newMessage.leadName}`,
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
+        body: {
+          name: newMessage.leadName,
+          phone: newMessage.phone,
+          type: newMessage.type,
+          data: { customMessage: newMessage.message }
+        }
+      });
 
-    setNewMessage({
-      leadName: "",
-      phone: "",
-      message: "",
-      type: "custom",
-      language: "english"
-    });
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Message Sent",
+          description: `WhatsApp message sent to ${newMessage.leadName}`,
+        });
+
+        setNewMessage({
+          leadName: "",
+          phone: "",
+          message: "",
+          type: "custom",
+          language: "english"
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to send message');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to send message: ${error.message}`,
+        variant: "destructive",
+      });
+    }
   };
 
   const sendBulkMessage = () => {
