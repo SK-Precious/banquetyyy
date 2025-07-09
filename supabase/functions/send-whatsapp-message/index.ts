@@ -14,39 +14,44 @@ interface MessageRequest {
 
 const getMessageContent = (type: string, name: string, data: any = {}) => {
   const templates = {
-    welcome: `Hello ${name}! 👋 Welcome to Banquety - your premier banquet destination! 
+    welcome: `Dear ${name},
 
-🎉 We're excited to help make your special event memorable. Here's what we offer:
+Thank You for making an inquiry at SK Precious banquets, Janakpuri.
 
-📍 Our beautiful venue with modern facilities
-🍽️ Customizable catering packages  
-📸 Professional event photography
-🎵 Sound & lighting systems
+We hope you had a pleasant visit and our team was able to fulfil all your queries.
 
-📋 View our brochure: [Your website link]
-📷 Browse our gallery: [Gallery link]
+As discussed, all the pictures of our venue including glimpse of services we offer are accessible using the links below.
 
-Would you like to schedule a venue tour? Reply to this message or call us!
+https://drive.google.com/drive/folders/1aQW3zquLHRNRYL3OJGbL1-94gh51EbTM
 
-Best regards,
-The Banquety Team`,
+www.preciousbanquets.com
 
-    confirmation: `🎉 Congratulations ${name}! Your booking is CONFIRMED! 
+https://www.instagram.com/skprecious_banquet?igsh=MWtxbm5taWd1bW1udQ==
+
+Let us know if you have any further queries for your Precious functions.
+
+Thank You
+SK Precious`,
+
+    confirmation: `🎉 Dear ${name}, Your booking is CONFIRMED! 
 
 📅 Event Date: ${data.date}
 📦 Package: ${data.packageName}
-📍 Venue: Banquety Hall
+📍 Venue: SK Precious Banquets, Janakpuri
 
 ✅ Next Steps:
 • We'll send payment details shortly
 • Our team will contact you for menu selection
 • Venue walkthrough will be scheduled
 
-Thank you for choosing Banquety! We're excited to make your event special! 
+Thank you for choosing SK Precious! We're excited to make your event special! 
 
-For questions: [Your contact info]`,
+For questions, please contact us.
 
-    quote: `Hi ${name}! Here's your personalized quote for your event:
+Thank You
+SK Precious`,
+
+    quote: `Dear ${name}, Here's your personalized quote for your event:
 
 💰 PRICING BREAKDOWN:
 ${data.priceBreakdown || 'Base Package: ₹50,000\nDecorations: ₹15,000\nCatering: ₹25,000\nTotal: ₹90,000'}
@@ -57,34 +62,38 @@ ${data.priceBreakdown || 'Base Package: ₹50,000\nDecorations: ₹15,000\nCater
 
 Ready to book? Reply with "YES" or call us directly!
 
-Best regards,
-Banquety Team`,
+Thank You
+SK Precious`,
 
-    reminder: `Hi ${name}! Friendly reminder about your upcoming ${data.type} 📅
+    reminder: `Dear ${name}, Friendly reminder about your upcoming ${data.type} 📅
 
 📋 Details:
 • Date: ${data.date}
 • Type: ${data.type}
-• Location: Banquety Hall
+• Location: SK Precious Banquets, Janakpuri
 
 Please confirm your attendance by replying to this message.
 
 Looking forward to seeing you!
-Banquety Team`,
 
-    feedback: `Hi ${name}! Hope your event on ${data.eventDate} was absolutely wonderful! 🎉
+Thank You
+SK Precious`,
 
-We'd love to hear about your experience:
-⭐ Rate our service: [Feedback link]
-📝 Share a review: [Google Review link]
+    feedback: `Dear ${name}, Hope your event on ${data.eventDate} was absolutely wonderful! 🎉
+
+We'd love to hear about your experience at SK Precious Banquets:
+⭐ Rate our service
+📝 Share a review
 📸 Tag us on social media with your photos!
 
-Thank you for choosing Banquety. We hope to celebrate with you again soon!
+https://www.instagram.com/skprecious_banquet?igsh=MWtxbm5taWd1bW1udQ==
 
-Best regards,
-The Banquety Team`,
+Thank you for choosing SK Precious. We hope to celebrate with you again soon!
 
-    followup: `Hi ${name}! We wanted to follow up on your event inquiry from ${data.leadAge} days ago.
+Thank You
+SK Precious`,
+
+    followup: `Dear ${name}, We wanted to follow up on your event inquiry from ${data.leadAge} days ago.
 
 🎯 Still planning your special event? We're here to help!
 
@@ -95,12 +104,17 @@ The Banquety Team`,
 
 📞 Ready to move forward? Let's schedule a call to discuss your vision!
 
+Visit our links:
+www.preciousbanquets.com
+https://www.instagram.com/skprecious_banquet?igsh=MWtxbm5taWd1bW1udQ==
+
 Reply or call us - we'd love to make your event memorable!
 
-Banquety Team`
+Thank You
+SK Precious`
   };
 
-  return templates[type as keyof typeof templates] || `Hello ${name}! Thank you for your interest in Banquety.`;
+  return templates[type as keyof typeof templates] || `Dear ${name}, Thank you for your interest in SK Precious Banquets.`;
 };
 
 serve(async (req) => {
