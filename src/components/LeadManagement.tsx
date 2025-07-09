@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
-import { Phone, Mail, MessageCircle, Plus, Eye, Calendar } from "lucide-react";
+import { Phone, Mail, MessageCircle, Plus, Eye, Calendar, Brain, Loader2 } from "lucide-react";
 import { WalkInCapture } from "./WalkInCapture";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -60,6 +60,8 @@ export function LeadManagement() {
 
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showWalkIn, setShowWalkIn] = useState(false);
+  const [aiQuoteData, setAiQuoteData] = useState<any>(null);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -103,6 +105,40 @@ export function LeadManagement() {
         description: `Failed to send WhatsApp message: ${error.message}`,
         variant: "destructive",
       });
+    }
+  };
+
+  const generateAIQuote = async (lead: Lead) => {
+    setIsLoadingAI(true);
+    try {
+      const leadTimeInDays = Math.ceil((new Date(lead.eventDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      
+      const { data, error } = await supabase.functions.invoke('ai-price-prediction', {
+        body: {
+          occasion: lead.eventDate ? 'wedding' : 'birthday', // Default occasion
+          pax: lead.guestCount,
+          function_date: lead.eventDate,
+          menu_type: 'vegetarian', // Default menu type
+          lead_time_days: leadTimeInDays,
+          lead_source: lead.source?.toLowerCase()
+        }
+      });
+
+      if (error) throw error;
+
+      setAiQuoteData(data);
+      toast({
+        title: "AI Quote Generated",
+        description: `Smart pricing analysis completed for ${lead.name}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to generate AI quote: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAI(false);
     }
   };
 
@@ -204,6 +240,18 @@ export function LeadManagement() {
                       >
                         <Calendar className="w-4 h-4" />
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => generateAIQuote(lead)}
+                        disabled={isLoadingAI}
+                      >
+                        {isLoadingAI ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Brain className="w-4 h-4" />
+                        )}
+                      </Button>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
@@ -273,22 +321,131 @@ export function LeadManagement() {
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => generateAIQuote(selectedLead)}
+                                  disabled={isLoadingAI}
+                                >
+                                  {isLoadingAI ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Brain className="w-4 h-4 mr-2" />
+                                  )}
+                                  AI Quote
+                                </Button>
                                 <Button variant="outline">
                                   Convert to Booking
                                 </Button>
                               </div>
                             </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* AI Quote Results Dialog */}
+        {aiQuoteData && (
+          <Dialog open={!!aiQuoteData} onOpenChange={() => setAiQuoteData(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>AI Price Prediction Results</DialogTitle>
+                <DialogDescription>
+                  Smart pricing analysis with business intelligence
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Pricing Breakdown</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Base Price:</span>
+                        <span className="font-medium">₹{aiQuoteData.base_price?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>GST (18%):</span>
+                        <span className="font-medium">₹{aiQuoteData.gst_amount?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2">
+                        <span className="font-semibold">Total Price:</span>
+                        <span className="font-bold text-primary">₹{aiQuoteData.total_price?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Advance Required:</span>
+                        <span className="font-medium">₹{aiQuoteData.deposit_amount?.toLocaleString()}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Business Intelligence</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span>Lead Score:</span>
+                          <Badge variant={aiQuoteData.lead_label === 'Hot' ? 'default' : aiQuoteData.lead_label === 'Warm' ? 'secondary' : 'outline'}>
+                            {aiQuoteData.lead_score}/100 - {aiQuoteData.lead_label}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span>Payment Risk:</span>
+                          <Badge variant={aiQuoteData.payment_risk === 'Low' ? 'default' : aiQuoteData.payment_risk === 'Medium' ? 'secondary' : 'destructive'}>
+                            {aiQuoteData.payment_risk}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span>Demand Surge:</span>
+                          <Badge variant={aiQuoteData.demand_surge ? 'destructive' : 'outline'}>
+                            {aiQuoteData.demand_surge ? 'High Demand' : 'Normal'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Pricing Factors</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>Lead Time Factor: {aiQuoteData.pricing_factors?.lead_time_factor}x</div>
+                    <div>Seasonal Factor: {aiQuoteData.pricing_factors?.seasonal_factor}x</div>
+                    <div>Base Rate: ₹{aiQuoteData.pricing_factors?.pax_rate}/person</div>
+                    <div>Menu Multiplier: {aiQuoteData.pricing_factors?.occasion_multiplier}x</div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button onClick={() => {
+                    if (selectedLead) {
+                      sendWhatsAppMessage(selectedLead, 'quote');
+                    }
+                  }}>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Send Quote via WhatsApp
+                  </Button>
+                  <Button variant="outline" onClick={() => setAiQuoteData(null)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
       <WalkInCapture 
         open={showWalkIn} 

@@ -50,7 +50,8 @@ interface BookingSystemProps {
   employeeCode?: string;
 }
 
-export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
+export function BookingSystem({ employeeCode = "" }: BookingSystemProps) {
+  const isAdmin = employeeCode === "000";
   const [activeTab, setActiveTab] = useState("bookings");
   const [bookings, setBookings] = useState<Booking[]>([
     {
@@ -329,31 +330,35 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ₹{bookings.reduce((sum, booking) => sum + booking.netBooking, 0).toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">Total booking value</p>
-              </CardContent>
-            </Card>
+            {isAdmin && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    ₹{bookings.reduce((sum, booking) => sum + booking.netBooking, 0).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Total booking value</p>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Balance</CardTitle>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ₹{bookings.reduce((sum, booking) => sum + calculateBalance(booking), 0).toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">Outstanding payments</p>
-              </CardContent>
-            </Card>
+            {isAdmin && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pending Balance</CardTitle>
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    ₹{bookings.reduce((sum, booking) => sum + calculateBalance(booking), 0).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Outstanding payments</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <Card>
@@ -370,9 +375,9 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
                     <TableHead>Event Date</TableHead>
                     <TableHead>Slot</TableHead>
                     <TableHead>Menu</TableHead>
-                    <TableHead>Net Amount</TableHead>
-                    <TableHead>Paid</TableHead>
-                    <TableHead>Balance</TableHead>
+                    {isAdmin && <TableHead>Net Amount</TableHead>}
+                    {isAdmin && <TableHead>Paid</TableHead>}
+                    {isAdmin && <TableHead>Balance</TableHead>}
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -385,9 +390,9 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
                       <TableCell>{new Date(booking.eventDate).toLocaleDateString()}</TableCell>
                       <TableCell className="capitalize">{booking.slot}</TableCell>
                       <TableCell>{booking.menuPreference}</TableCell>
-                      <TableCell>₹{booking.netBooking.toLocaleString()}</TableCell>
-                      <TableCell>₹{calculateTotalPaid(booking).toLocaleString()}</TableCell>
-                      <TableCell>₹{calculateBalance(booking).toLocaleString()}</TableCell>
+                      {isAdmin && <TableCell>₹{booking.netBooking.toLocaleString()}</TableCell>}
+                      {isAdmin && <TableCell>₹{calculateTotalPaid(booking).toLocaleString()}</TableCell>}
+                      {isAdmin && <TableCell>₹{calculateBalance(booking).toLocaleString()}</TableCell>}
                       <TableCell>
                         <Badge className={getStatusColor(booking.status)}>
                           {booking.status}
@@ -464,35 +469,37 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
                                     </div>
                                   </div>
                                   
-                                  <div className="border-t pt-4">
-                                    <h4 className="font-semibold mb-2">Payment Information (Admin Only)</h4>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div>
-                                        <Label>Gross Amount</Label>
-                                        <p className="mt-1">₹{selectedBooking.grossAmount.toLocaleString()}</p>
-                                      </div>
-                                      <div>
-                                        <Label>GST</Label>
-                                        <p className="mt-1">₹{selectedBooking.gst.toLocaleString()}</p>
-                                      </div>
-                                      <div>
-                                        <Label>Extras</Label>
-                                        <p className="mt-1">₹{selectedBooking.extras.toLocaleString()}</p>
-                                      </div>
-                                      <div>
-                                        <Label>Net Booking</Label>
-                                        <p className="mt-1 font-semibold">₹{selectedBooking.netBooking.toLocaleString()}</p>
-                                      </div>
-                                      <div>
-                                        <Label>Advance Paid</Label>
-                                        <p className="mt-1">₹{selectedBooking.advance.toLocaleString()}</p>
-                                      </div>
-                                      <div>
-                                        <Label>Total Paid</Label>
-                                        <p className="mt-1">₹{calculateTotalPaid(selectedBooking).toLocaleString()}</p>
+                                  {isAdmin && (
+                                    <div className="border-t pt-4">
+                                      <h4 className="font-semibold mb-2">Payment Information (Admin Only)</h4>
+                                      <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                          <Label>Gross Amount</Label>
+                                          <p className="mt-1">₹{selectedBooking.grossAmount.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <Label>GST</Label>
+                                          <p className="mt-1">₹{selectedBooking.gst.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <Label>Extras</Label>
+                                          <p className="mt-1">₹{selectedBooking.extras.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <Label>Net Booking</Label>
+                                          <p className="mt-1 font-semibold">₹{selectedBooking.netBooking.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <Label>Advance Paid</Label>
+                                          <p className="mt-1">₹{selectedBooking.advance.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <Label>Total Paid</Label>
+                                          <p className="mt-1">₹{calculateTotalPaid(selectedBooking).toLocaleString()}</p>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
+                                  )}
 
                                   {selectedBooking.partPayments.length > 0 && (
                                     <div className="border-t pt-4">
@@ -740,65 +747,67 @@ export function BookingSystem({ employeeCode }: BookingSystemProps = {}) {
             </div>
 
             {/* Admin-only Booking Amount Section */}
-            <div className="border-t pt-4">
-              <h4 className="font-semibold mb-4 text-destructive">Booking Amount (Admin Access Only)</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="grossAmount">Gross Amount</Label>
-                  <Input
-                    id="grossAmount"
-                    type="number"
-                    value={newBooking.grossAmount}
-                    onChange={(e) => setNewBooking({...newBooking, grossAmount: e.target.value})}
-                    placeholder="500000"
-                  />
-                </div>
+            {isAdmin && (
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-4 text-destructive">Booking Amount (Admin Access Only)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="grossAmount">Gross Amount</Label>
+                    <Input
+                      id="grossAmount"
+                      type="number"
+                      value={newBooking.grossAmount}
+                      onChange={(e) => setNewBooking({...newBooking, grossAmount: e.target.value})}
+                      placeholder="500000"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="gst">GST</Label>
-                  <Input
-                    id="gst"
-                    type="number"
-                    value={newBooking.gst}
-                    onChange={(e) => setNewBooking({...newBooking, gst: e.target.value})}
-                    placeholder="90000"
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="gst">GST</Label>
+                    <Input
+                      id="gst"
+                      type="number"
+                      value={newBooking.gst}
+                      onChange={(e) => setNewBooking({...newBooking, gst: e.target.value})}
+                      placeholder="90000"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="extras">Extras</Label>
-                  <Input
-                    id="extras"
-                    type="number"
-                    value={newBooking.extras}
-                    onChange={(e) => setNewBooking({...newBooking, extras: e.target.value})}
-                    placeholder="50000"
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="extras">Extras</Label>
+                    <Input
+                      id="extras"
+                      type="number"
+                      value={newBooking.extras}
+                      onChange={(e) => setNewBooking({...newBooking, extras: e.target.value})}
+                      placeholder="50000"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="netBooking">Net Booking</Label>
-                  <Input
-                    id="netBooking"
-                    type="number"
-                    value={newBooking.netBooking}
-                    onChange={(e) => setNewBooking({...newBooking, netBooking: e.target.value})}
-                    placeholder="640000"
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="netBooking">Net Booking</Label>
+                    <Input
+                      id="netBooking"
+                      type="number"
+                      value={newBooking.netBooking}
+                      onChange={(e) => setNewBooking({...newBooking, netBooking: e.target.value})}
+                      placeholder="640000"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="advance">Advance</Label>
-                  <Input
-                    id="advance"
-                    type="number"
-                    value={newBooking.advance}
-                    onChange={(e) => setNewBooking({...newBooking, advance: e.target.value})}
-                    placeholder="200000"
-                  />
+                  <div>
+                    <Label htmlFor="advance">Advance</Label>
+                    <Input
+                      id="advance"
+                      type="number"
+                      value={newBooking.advance}
+                      onChange={(e) => setNewBooking({...newBooking, advance: e.target.value})}
+                      placeholder="200000"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
             <div className="flex gap-2 pt-4">
               <Button type="submit" className="flex-1">
