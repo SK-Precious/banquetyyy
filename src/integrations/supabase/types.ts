@@ -134,7 +134,9 @@ export type Database = {
       leads: {
         Row: {
           assigned_to: string | null
+          budget: string | null
           budget_range: string | null
+          contact: string | null
           created_at: string
           email: string | null
           event_date: string | null
@@ -143,6 +145,8 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          occasion: string | null
+          pax: number | null
           phone: string | null
           source: string | null
           status: string | null
@@ -150,7 +154,9 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          budget?: string | null
           budget_range?: string | null
+          contact?: string | null
           created_at?: string
           email?: string | null
           event_date?: string | null
@@ -159,6 +165,8 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          occasion?: string | null
+          pax?: number | null
           phone?: string | null
           source?: string | null
           status?: string | null
@@ -166,7 +174,9 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          budget?: string | null
           budget_range?: string | null
+          contact?: string | null
           created_at?: string
           email?: string | null
           event_date?: string | null
@@ -175,6 +185,8 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          occasion?: string | null
+          pax?: number | null
           phone?: string | null
           source?: string | null
           status?: string | null
@@ -187,6 +199,51 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          id: string
+          lead_id: string | null
+          sent_by: string | null
+          status: string
+          timestamp: string
+          type: string
+        }
+        Insert: {
+          content?: string | null
+          id?: string
+          lead_id?: string | null
+          sent_by?: string | null
+          status?: string
+          timestamp?: string
+          type: string
+        }
+        Update: {
+          content?: string | null
+          id?: string
+          lead_id?: string | null
+          sent_by?: string | null
+          status?: string
+          timestamp?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -264,6 +321,39 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          last_login: string | null
+          name: string
+          password: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          last_login?: string | null
+          name: string
+          password: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          last_login?: string | null
+          name?: string
+          password?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
