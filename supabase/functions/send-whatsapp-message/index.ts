@@ -1,4 +1,6 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,113 +10,136 @@ const corsHeaders = {
 interface MessageRequest {
   name: string;
   phone: string;
-  type: 'welcome' | 'confirmation' | 'quote' | 'reminder' | 'feedback' | 'followup';
+  type: 'welcome' | 'confirmation' | 'quote' | 'reminder' | 'feedback' | 'followup' | 'tasting' | 'concierge';
   data?: any;
+  leadId?: string;
+  language?: 'en' | 'hi' | 'gu';
 }
 
-const getMessageContent = (type: string, name: string, data: any = {}) => {
-  const templates = {
-    welcome: `Dear ${name},
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
 
-Thank You for making an inquiry at SK Precious banquets, Janakpuri.
+const getGPTPrompt = (type: string, name: string, data: any = {}, language: string = 'en') => {
+  const baseContext = `
+    You are SK Precious Banquets AI assistant for WhatsApp communication.
+    Venue: SK Precious Banquets, Janakpuri, Delhi
+    Links: www.preciousbanquets.com, Instagram: @skprecious_banquet
+    Gallery: https://drive.google.com/drive/folders/1aQW3zquLHRNRYL3OJGbL1-94gh51EbTM
+    ${language !== 'en' ? `Respond in ${language === 'hi' ? 'Hindi' : 'Gujarati'} language.` : ''}
+  `;
 
-We hope you had a pleasant visit and our team was able to fulfil all your queries.
+  const prompts = {
+    welcome: `${baseContext}
+    Write a friendly, professional WhatsApp welcome message for ${name} who visited our banquet venue.
+    Include: Thank them for visit, mention our gallery links, offer to answer queries.
+    Keep it warm and professional. End with "Thank You, SK Precious".`,
 
-As discussed, all the pictures of our venue including glimpse of services we offer are accessible using the links below.
+    confirmation: `${baseContext}
+    Write a booking confirmation message for ${name}.
+    Event Details: Date: ${data.date}, Package: ${data.packageName}, Guests: ${data.guestCount || 'TBD'}
+    Include: Confirmation emoji, next steps (payment, menu selection, venue walkthrough).
+    Be professional and excited. End with "Thank You, SK Precious".`,
 
-https://drive.google.com/drive/folders/1aQW3zquLHRNRYL3OJGbL1-94gh51EbTM
+    quote: `${baseContext}
+    Generate a personalized banquet pricing quote for ${name}.
+    Event Details: Guests: ${data.guestCount || data.pax || 100}, Occasion: ${data.occasion || 'celebration'}, Date: ${data.eventDate || 'TBD'}
+    Include: Base package estimate, decorations, catering, total range, 30% advance requirement, 15-day validity.
+    Use realistic Delhi banquet pricing. End with "Thank You, SK Precious".`,
 
-www.preciousbanquets.com
+    reminder: `${baseContext}
+    Write a polite reminder message for ${name}.
+    Reminder Type: ${data.type || 'appointment'}, Date: ${data.date || 'scheduled'}
+    Be courteous and professional. Ask for confirmation. End with "Thank You, SK Precious".`,
 
-https://www.instagram.com/skprecious_banquet?igsh=MWtxbm5taWd1bW1udQ==
+    feedback: `${baseContext}
+    Write a post-event feedback request for ${name}.
+    Event Date: ${data.eventDate || 'recent event'}
+    Ask for: Rating, review, social media tagging. Include Instagram link.
+    Be appreciative and hopeful for future events. End with "Thank You, SK Precious".`,
 
-Let us know if you have any further queries for your Precious functions.
+    followup: `${baseContext}
+    Write a follow-up message for ${name} who hasn't responded in ${data.leadAge || 5} days.
+    Include: Current offers (10% early bird, free consultation, venue tour), website links.
+    Be helpful and not pushy. End with "Thank You, SK Precious".`,
 
-Thank You
-SK Precious`,
+    tasting: `${baseContext}
+    Offer food tasting appointment to ${name}.
+    Suggest 3 time slots in next 7 days. Ask them to confirm preference.
+    Be enthusiastic about showcasing cuisine. End with "Thank You, SK Precious".`,
 
-    confirmation: `🎉 Dear ${name}, Your booking is CONFIRMED! 
-
-📅 Event Date: ${data.date}
-📦 Package: ${data.packageName}
-📍 Venue: SK Precious Banquets, Janakpuri
-
-✅ Next Steps:
-• We'll send payment details shortly
-• Our team will contact you for menu selection
-• Venue walkthrough will be scheduled
-
-Thank you for choosing SK Precious! We're excited to make your event special! 
-
-For questions, please contact us.
-
-Thank You
-SK Precious`,
-
-    quote: `Dear ${name}, Here's your personalized quote for your event:
-
-💰 PRICING BREAKDOWN:
-${data.priceBreakdown || 'Base Package: ₹50,000\nDecorations: ₹15,000\nCatering: ₹25,000\nTotal: ₹90,000'}
-
-✨ This quote is valid for 15 days
-💳 30% advance required to confirm booking
-📞 Call us to discuss customizations
-
-Ready to book? Reply with "YES" or call us directly!
-
-Thank You
-SK Precious`,
-
-    reminder: `Dear ${name}, Friendly reminder about your upcoming ${data.type} 📅
-
-📋 Details:
-• Date: ${data.date}
-• Type: ${data.type}
-• Location: SK Precious Banquets, Janakpuri
-
-Please confirm your attendance by replying to this message.
-
-Looking forward to seeing you!
-
-Thank You
-SK Precious`,
-
-    feedback: `Dear ${name}, Hope your event on ${data.eventDate} was absolutely wonderful! 🎉
-
-We'd love to hear about your experience at SK Precious Banquets:
-⭐ Rate our service
-📝 Share a review
-📸 Tag us on social media with your photos!
-
-https://www.instagram.com/skprecious_banquet?igsh=MWtxbm5taWd1bW1udQ==
-
-Thank you for choosing SK Precious. We hope to celebrate with you again soon!
-
-Thank You
-SK Precious`,
-
-    followup: `Dear ${name}, We wanted to follow up on your event inquiry from ${data.leadAge} days ago.
-
-🎯 Still planning your special event? We're here to help!
-
-✨ Current offers:
-• 10% early bird discount
-• Free decoration consultation
-• Complimentary venue tour
-
-📞 Ready to move forward? Let's schedule a call to discuss your vision!
-
-Visit our links:
-www.preciousbanquets.com
-https://www.instagram.com/skprecious_banquet?igsh=MWtxbm5taWd1bW1udQ==
-
-Reply or call us - we'd love to make your event memorable!
-
-Thank You
-SK Precious`
+    concierge: `${baseContext}
+    Answer this customer query: "${data.question || 'General inquiry'}"
+    Provide helpful information about SK Precious Banquets services, capacity, amenities.
+    Be informative and encourage booking. End with "Thank You, SK Precious".`
   };
 
-  return templates[type as keyof typeof templates] || `Dear ${name}, Thank you for your interest in SK Precious Banquets.`;
+  return prompts[type as keyof typeof prompts] || `${baseContext} Respond to ${name} professionally about SK Precious Banquets. End with "Thank You, SK Precious".`;
+};
+
+const generateGPTResponse = async (prompt: string): Promise<string> => {
+  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+  
+  if (!openAIApiKey) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional banquet venue assistant. Write concise, friendly WhatsApp messages that are culturally appropriate for Indian customers. Keep responses under 150 words.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`OpenAI API error: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || 'Thank you for your interest in SK Precious Banquets.';
+  } catch (error) {
+    console.error('GPT API Error:', error);
+    throw error;
+  }
+};
+
+const logMessage = async (leadId: string | null, type: string, gptPrompt: string, gptResponse: string, status: string) => {
+  try {
+    await supabase
+      .from('messages')
+      .insert({
+        lead_id: leadId,
+        type: `gpt_${type}`,
+        content: JSON.stringify({
+          prompt: gptPrompt,
+          response: gptResponse,
+          agent_type: type
+        }),
+        status,
+        timestamp: new Date().toISOString()
+      });
+  } catch (error) {
+    console.error('Failed to log message:', error);
+  }
 };
 
 serve(async (req) => {
@@ -123,7 +148,7 @@ serve(async (req) => {
   }
 
   try {
-    const { name, phone, type, data }: MessageRequest = await req.json()
+    const { name, phone, type, data, leadId, language }: MessageRequest = await req.json()
 
     if (!name || !phone || !type) {
       throw new Error('Missing required fields: name, phone, type')
@@ -140,7 +165,39 @@ serve(async (req) => {
       throw new Error('Twilio credentials not configured');
     }
 
-    const messageBody = getMessageContent(type, name, data);
+    // Fetch lead context if leadId provided
+    let leadContext = {};
+    if (leadId) {
+      try {
+        const { data: lead } = await supabase
+          .from('leads')
+          .select('*')
+          .eq('id', leadId)
+          .single();
+        
+        if (lead) {
+          leadContext = {
+            eventDate: lead.event_date,
+            occasion: lead.occasion || lead.event_type,
+            guestCount: lead.guest_count || lead.pax,
+            budget: lead.budget_range,
+            notes: lead.notes
+          };
+        }
+      } catch (error) {
+        console.log('Could not fetch lead context:', error);
+      }
+    }
+
+    // Merge lead context with provided data
+    const enrichedData = { ...leadContext, ...data };
+
+    // Generate GPT prompt and response
+    const gptPrompt = getGPTPrompt(type, name, enrichedData, language || 'en');
+    console.log('GPT Prompt:', gptPrompt);
+
+    const gptResponse = await generateGPTResponse(gptPrompt);
+    console.log('GPT Response:', gptResponse);
 
     // Send WhatsApp message via Twilio
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
@@ -148,7 +205,7 @@ serve(async (req) => {
     const formData = new URLSearchParams();
     formData.append('From', twilioNumber);
     formData.append('To', `whatsapp:${formattedPhone}`);
-    formData.append('Body', messageBody);
+    formData.append('Body', gptResponse);
 
     const response = await fetch(twilioUrl, {
       method: 'POST',
@@ -166,11 +223,15 @@ serve(async (req) => {
 
     const result = await response.json();
 
+    // Log the GPT interaction
+    await logMessage(leadId || null, type, gptPrompt, gptResponse, result.status);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         messageSid: result.sid,
-        status: result.status 
+        status: result.status,
+        gptResponse: gptResponse
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -179,6 +240,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('WhatsApp send error:', error);
+    
+    // Log failed attempt
+    if (error.message.includes('GPT') || error.message.includes('OpenAI')) {
+      await logMessage(null, 'error', 'GPT_ERROR', error.message, 'failed');
+    }
+
     return new Response(
       JSON.stringify({ 
         success: false, 

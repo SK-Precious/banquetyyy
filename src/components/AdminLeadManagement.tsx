@@ -216,9 +216,16 @@ export const AdminLeadManagement = () => {
   const sendQuoteViaWhatsApp = async () => {
     if (!selectedLead || !aiQuoteResult) return;
 
-    const success = await sendQuote(selectedLead.name, selectedLead.contact, {
-      priceBreakdown: `₹${aiQuoteResult.total_price?.toLocaleString()} (Base: ₹${aiQuoteResult.base_price?.toLocaleString()}, GST: ₹${aiQuoteResult.gst_amount?.toLocaleString()}, Deposit: ₹${aiQuoteResult.deposit_amount?.toLocaleString()})`
-    });
+    const success = await sendQuote(
+      selectedLead.name, 
+      selectedLead.contact, 
+      {
+        guestCount: selectedLead.pax,
+        occasion: selectedLead.occasion,
+        eventDate: selectedLead.event_date
+      },
+      selectedLead.id
+    );
 
     if (success) {
       // Log the message

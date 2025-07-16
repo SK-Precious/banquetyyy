@@ -5,8 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 interface WhatsAppMessage {
   name: string;
   phone: string;
-  type: 'welcome' | 'confirmation' | 'quote' | 'reminder' | 'feedback' | 'followup';
+  type: 'welcome' | 'confirmation' | 'quote' | 'reminder' | 'feedback' | 'followup' | 'tasting' | 'concierge';
   data?: any;
+  leadId?: string;
+  language?: 'en' | 'hi' | 'gu';
 }
 
 export const useWhatsApp = () => {
@@ -43,23 +45,29 @@ export const useWhatsApp = () => {
     }
   };
 
-  const sendWelcome = (name: string, phone: string) => 
-    sendMessage({ name, phone, type: 'welcome' });
+  const sendWelcome = (name: string, phone: string, leadId?: string, language?: 'en' | 'hi' | 'gu') => 
+    sendMessage({ name, phone, type: 'welcome', leadId, language });
 
-  const sendConfirmation = (name: string, phone: string, data: { date: string; packageName: string }) =>
-    sendMessage({ name, phone, type: 'confirmation', data });
+  const sendConfirmation = (name: string, phone: string, data: { date: string; packageName: string; guestCount?: number }, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'confirmation', data, leadId, language });
 
-  const sendQuote = (name: string, phone: string, data: { priceBreakdown: string }) =>
-    sendMessage({ name, phone, type: 'quote', data });
+  const sendQuote = (name: string, phone: string, data?: { guestCount?: number; occasion?: string; eventDate?: string }, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'quote', data, leadId, language });
 
-  const sendReminder = (name: string, phone: string, data: { type: string; date: string }) =>
-    sendMessage({ name, phone, type: 'reminder', data });
+  const sendReminder = (name: string, phone: string, data: { type: string; date: string }, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'reminder', data, leadId, language });
 
-  const sendFeedback = (name: string, phone: string, data: { eventDate: string }) =>
-    sendMessage({ name, phone, type: 'feedback', data });
+  const sendFeedback = (name: string, phone: string, data: { eventDate: string }, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'feedback', data, leadId, language });
 
-  const sendFollowup = (name: string, phone: string, data: { leadAge: number }) =>
-    sendMessage({ name, phone, type: 'followup', data });
+  const sendFollowup = (name: string, phone: string, data: { leadAge: number }, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'followup', data, leadId, language });
+
+  const sendTasting = (name: string, phone: string, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'tasting', leadId, language });
+
+  const sendConcierge = (name: string, phone: string, question: string, leadId?: string, language?: 'en' | 'hi' | 'gu') =>
+    sendMessage({ name, phone, type: 'concierge', data: { question }, leadId, language });
 
   return {
     isSending,
@@ -70,5 +78,7 @@ export const useWhatsApp = () => {
     sendReminder,
     sendFeedback,
     sendFollowup,
+    sendTasting,
+    sendConcierge,
   };
 };
