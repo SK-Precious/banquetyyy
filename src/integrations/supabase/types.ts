@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          created_at: string
+          data_hash: string
+          id: string
+          lead_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_hash: string
+          id?: string
+          lead_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_hash?: string
+          id?: string
+          lead_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           advance_paid: number | null
@@ -133,6 +157,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          ad_encrypted: string | null
           assigned_to: string | null
           budget: string | null
           budget_range: string | null
@@ -141,6 +166,8 @@ export type Database = {
           email: string | null
           event_date: string | null
           event_type: string | null
+          fd_encrypted: string | null
+          gst_encrypted: string | null
           guest_count: number | null
           id: string
           name: string
@@ -148,11 +175,13 @@ export type Database = {
           occasion: string | null
           pax: number | null
           phone: string | null
+          price_quote_encrypted: string | null
           source: string | null
           status: string | null
           updated_at: string
         }
         Insert: {
+          ad_encrypted?: string | null
           assigned_to?: string | null
           budget?: string | null
           budget_range?: string | null
@@ -161,6 +190,8 @@ export type Database = {
           email?: string | null
           event_date?: string | null
           event_type?: string | null
+          fd_encrypted?: string | null
+          gst_encrypted?: string | null
           guest_count?: number | null
           id?: string
           name: string
@@ -168,11 +199,13 @@ export type Database = {
           occasion?: string | null
           pax?: number | null
           phone?: string | null
+          price_quote_encrypted?: string | null
           source?: string | null
           status?: string | null
           updated_at?: string
         }
         Update: {
+          ad_encrypted?: string | null
           assigned_to?: string | null
           budget?: string | null
           budget_range?: string | null
@@ -181,6 +214,8 @@ export type Database = {
           email?: string | null
           event_date?: string | null
           event_type?: string | null
+          fd_encrypted?: string | null
+          gst_encrypted?: string | null
           guest_count?: number | null
           id?: string
           name?: string
@@ -188,6 +223,7 @@ export type Database = {
           occasion?: string | null
           pax?: number | null
           phone?: string | null
+          price_quote_encrypted?: string | null
           source?: string | null
           status?: string | null
           updated_at?: string
