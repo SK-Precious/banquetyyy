@@ -1,0 +1,233 @@
+Absolutely — here’s a **technical handover document** specifically written for your **developer or tech lead** who will take over from here to finalize, maintain, and deploy the **Banquet Bliss Blueprint** app into production, including the **Android app build**.
+
+It includes:
+
+* ✅ What’s been done so far
+* 🔧 Where it’s deployed (Supabase + Vercel)
+* 📦 Codebase reference (GitHub)
+* 🔍 Remaining tasks to production
+* 📱 Android wrapper notes
+* 🔐 Security model
+* 📈 AI agent + WhatsApp integration details
+
+---
+
+# 📁 Tech Handover Document – Banquet Bliss Blueprint
+
+### For: Tech Lead / Developer Taking Over
+
+**Project Owner:** \[You]
+**Repo:** [https://github.com/SK-Precious/banquet-bliss-blueprint](https://github.com/SK-Precious/banquet-bliss-blueprint)
+**Live URL:** [https://banquetysk.vercel.app](https://banquetysk.vercel.app)
+**Stack:** React (frontend) + Supabase (backend) + Edge Functions + Twilio + GPT + Vercel
+
+---
+
+## ✅ PROJECT PURPOSE
+
+The **Banquet Bliss Blueprint** is a modern backend office management system built for a banquet/event venue. It streamlines:
+
+* Lead collection & tracking
+* Client communication via WhatsApp
+* AI-based price suggestion
+* Secure financial data handling
+* Admin approval workflows
+* Multi-user login (staff/admin)
+* Agent-based automation (e.g., reminders, follow-ups)
+
+The app is currently functional, deployed, and being handed over for final production polish, testing, and Android deployment.
+
+---
+
+## 📦 WHAT’S BEEN DONE SO FAR
+
+### 🔗 1. GitHub Repo
+
+* Code hosted at: [https://github.com/SK-Precious/banquet-bliss-blueprint](https://github.com/SK-Precious/banquet-bliss-blueprint)
+* Written in **React** using Lovable’s low-code builder (you’ll see a generated structure)
+* All logic is modular, manageable, and Vercel-compatible
+
+---
+
+### ☁️ 2. Frontend Deployment – Vercel
+
+* Deployed at: [https://banquetysk.vercel.app](https://banquetysk.vercel.app)
+* Connected via GitHub auto-deploy
+* Framework: `Create React App`
+* Vercel build logs accessible under `banquetysk` project
+* CORS headers, routing, and supabase environment variables configured
+
+✅ Status: Live
+🟡 Pending: Production build audit + testing edge cases
+
+---
+
+### 🧰 3. Backend – Supabase
+
+| Feature    | Status                                           |
+| ---------- | ------------------------------------------------ |
+| Auth       | ✅ Email/password logins enabled                  |
+| RLS        | ✅ Applied to financial logs (`audit_log`)        |
+| User Roles | ✅ Admin (`000`) vs Staff (`001`–`010`)           |
+| DB Tables  | ✅ `leads`, `messages`, `audit_log`, `users`      |
+| Policies   | ✅ RLS policy: Only admin can view audit logs     |
+| Storage    | ❌ Not yet used (e.g. brochures, images)          |
+| Triggers   | ❌ Not yet used (optional: logging, auto updates) |
+
+---
+
+### 🧠 4. AI Agent Integration (OpenAI + Supabase Edge)
+
+| Agent              | Status                                   | Description |
+| ------------------ | ---------------------------------------- | ----------- |
+| Welcome Agent      | ✅ Sends WhatsApp intro message           |             |
+| AI Quote Agent     | ✅ Calls FastAPI or GPT for pricing logic |             |
+| Booking Confirm    | ✅ Automated message post-confirmation    |             |
+| Reminder Agent     | ✅ Tasting/payment/event reminders        |             |
+| Follow-Up Bot      | ✅ 3–7–14 day delay follow-ups            |             |
+| Feedback Collector | ✅ WhatsApp link sent post-event          |             |
+| Multilingual Agent | ✅ GPT auto-translation support           |             |
+| Concierge Agent    | ✅ GPT Q\&A – natural language enabled    |             |
+
+All agents are routed through **Supabase Edge Functions** using secure `OPENAI_API_KEY` + `TWILIO_*` secrets.
+
+---
+
+### 📤 5. WhatsApp Integration (Twilio)
+
+* WhatsApp Sandbox used for dev (free)
+* Twilio secrets stored securely:
+
+  * `TWILIO_ACCOUNT_SID`
+  * `TWILIO_AUTH_TOKEN`
+  * `TWILIO_WHATSAPP_NUMBER`
+* Functions:
+
+  * `send-welcome`
+  * `send-quote`
+  * `send-reminder`, etc.
+* Edge Functions trigger messages via WhatsApp with templates, logs sent to `messages` table
+
+✅ Status: Fully working
+🟡 Pending: Upgrade to Twilio-approved number for production
+
+---
+
+### 🔐 6. Financial Data Encryption
+
+* `leads` table now includes encrypted fields:
+
+  * `price_quote_encrypted`
+  * `gst_encrypted`
+  * `fd_encrypted`
+  * `ad_encrypted`
+
+* Admin-only Edge Function: `decrypt-financial`
+
+* AES-256-CBC encryption using a 32-byte Supabase secret:
+
+  ```
+  FINANCIAL_ENCRYPTION_KEY = <already configured>
+  ```
+
+* Non-admin users (staff) submit changes for financials, which are:
+
+  * Logged
+  * Signed
+  * Require admin (000) approval
+
+---
+
+### 🧾 7. Blockchain-Style Audit Log
+
+* Table: `audit_log`
+* Fields: `lead_id`, `data_hash`, `user_id`, `created_at`
+* Row Level Security: **only admin can view**
+* Each encrypted transaction generates:
+
+  * SHA-256 hash of submitted financials
+  * Entry into `audit_log`
+
+Optional:
+
+* Integrate OpenTimestamps:
+  `curl -X POST https://a.pool.opentimestamps.org/submit -d "<hash>"`
+
+---
+
+## 📋 FEATURES CHECKLIST
+
+| Feature                            | Status                      |
+| ---------------------------------- | --------------------------- |
+| Admin login + dashboard            | ✅ Complete                  |
+| Staff user system (001–010)        | ✅ Live                      |
+| WhatsApp automation                | ✅ Functional                |
+| GPT pricing + Q\&A agents          | ✅ Configured                |
+| Lead form + tracking               | ✅ Complete                  |
+| Financial approval flow            | ✅ Working                   |
+| Audit log with hash                | ✅ Built                     |
+| Multilingual support               | ✅ GPT + message templates   |
+| Message logging (`messages` table) | ✅ Per agent, per lead       |
+| CSV Upload for bulk leads          | ✅ Integrated                |
+| Android wrapper                    | ❌ To be built               |
+| GPT Concierge chat UI              | 🟡 Planned                  |
+| UI theme/polish                    | 🟡 Needs finishing touches  |
+| Testing edge cases                 | 🟡 To be handled in staging |
+
+---
+
+## 📱 Android App (To Be Built)
+
+You will build a **TWA (Trusted Web Activity)** Android app that wraps the deployed web app.
+
+### Tools:
+
+* Android Studio
+* Bubblewrap CLI or TWA project template
+* Requirements:
+
+  * Add assetlinks.json to Vercel root: `/.well-known/assetlinks.json`
+  * Package name: `com.banquet.bliss`
+  * Point to live app: `https://banquetysk.vercel.app`
+  * Set permissions to allow WhatsApp and browser opening
+
+📤 Output:
+
+* Generate `.aab` for Play Store submission
+* Enroll in internal testing track for staff install
+
+---
+
+## 🧑‍🔧 Tech Lead Responsibilities (Next Steps)
+
+| Area              | Task                                                |
+| ----------------- | --------------------------------------------------- |
+| ✅ Supabase        | Review security policies, triggers, backups         |
+| ✅ Frontend        | Polish UI, complete GPT Concierge panel             |
+| ✅ GPT Integration | Finalize prompts for consistency                    |
+| ✅ WhatsApp        | Upgrade from sandbox to business number             |
+| 🟡 Android        | Build and publish TWA                               |
+| 🟡 CI/CD          | Add test suite or monitoring for edge functions     |
+| 🟢 Optimization   | Compress assets, lazy-load agents, caching          |
+| 🟢 Reporting      | Build admin analytics dashboard: KPIs, conversion % |
+
+---
+
+## 📁 Final Notes
+
+* Lovable output includes all key prompts and Edge Function logic
+* Supabase handles all login, session, and data
+* Vercel deploy is stable, connected to GitHub
+* GitHub code is modular but generated — do not overwrite with custom webpack/CLI unless migrating out of Lovable
+
+---
+
+## 💬 Questions or Clarifications
+
+Feel free to check:
+
+* Vercel logs → Build + deployment success
+* Supabase → Auth activity, RLS policies
+* GitHub → Feature commits, version history
+
+---
